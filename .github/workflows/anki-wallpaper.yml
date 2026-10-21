@@ -6,6 +6,16 @@ on:
     - cron: "23 */2 * * *"
   # Adds a "Run workflow" button on the Actions tab for an instant refresh.
   workflow_dispatch:
+  # Re-draw right away when the settings, design or background change.
+  push:
+    branches: [main]
+    paths:
+      - "config.json"
+      - "template.html"
+      - "anki_wallpaper.py"
+      - "background.jpg"
+      - "fonts/**"
+      - ".github/workflows/anki-wallpaper.yml"
 
 permissions:
   contents: write

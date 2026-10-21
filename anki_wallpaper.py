@@ -114,7 +114,9 @@ ANSWER_HR = re.compile(r"<hr[^>]*id\s*=\s*[\"']?answer[\"']?[^>]*>", re.I)
 def clean_html(s: str) -> str:
     s = re.sub(r"(?is)<(style|script)[^>]*>.*?</\1>", "", s)
     s = re.sub(r"\[sound:[^\]]*\]", "", s)
+    s = re.sub(r"\[anki:play:[^\]]*\]", "", s)
     s = re.sub(r"(?is)\[anki:[^\]]*\].*?\[/anki:[^\]]*\]", "", s)
+    s = re.sub(r"(?is)<audio[^>]*>.*?</audio>", "", s)
     s = re.sub(r"(?i)<br\s*/?>|</(div|p|li|tr|h\d)>", "\n", s)
     s = re.sub(r"<[^>]+>", "", s)
     s = html.unescape(s).replace("\xa0", " ")
@@ -127,23 +129,39 @@ def shorten(s: str, limit: int) -> str:
     return s if len(s) <= limit else s[: limit - 1].rstrip() + "…"
 
 
-def card_texts(col, cid: int) -> tuple[str, str] | None:
+AUDIO = re.compile(r"\[anki:play:q|\[sound:|<audio", re.I)
+
+
+def card_texts(col, cid: int, use_fields: bool = False) -> tuple[str, str] | None:
+    """Front and back text for a card.
+
+    Cards whose front is audio (listening cards) are skipped, because a sound
+    can't be shown on a wallpaper. With use_fields=True the note's own text
+    fields are used instead of the rendered card.
+    """
     card = col.get_card(cid)
     front = back = ""
-    try:
-        r = card.render_output()
-        front = clean_html(r.question_text)
-        parts = ANSWER_HR.split(r.answer_text, maxsplit=1)
-        back = clean_html(parts[1] if len(parts) > 1 else r.answer_text)
-        if len(parts) == 1 and back.startswith(front):
-            back = back[len(front):].strip()
-    except Exception:  # noqa: BLE001
-        pass
+    if not use_fields:
+        try:
+            r = card.render_output()
+            if AUDIO.search(r.question_text):
+                return None
+            front = clean_html(r.question_text)
+            parts = ANSWER_HR.split(r.answer_text, maxsplit=1)
+            back = clean_html(parts[1] if len(parts) > 1 else r.answer_text)
+            if len(parts) == 1 and back.startswith(front):
+                back = back[len(front):].strip()
+        except Exception:  # noqa: BLE001
+            pass
     if not front or not back:
-        fields = [clean_html(f) for f in card.note().fields]
+        # Ignore fields that hold audio (and the "Listen..." prompt that goes with it).
+        fields = [clean_html(f) for f in card.note().fields if not AUDIO.search(f)]
         fields = [f for f in fields if f]
         if len(fields) >= 2:
             front, back = front or fields[0], back or fields[1]
+        elif len(fields) == 1 and "\n" in fields[0]:
+            first, rest = fields[0].split("\n", 1)
+            front, back = front or first, back or rest
     if not front or not back:
         return None
     return shorten(front, 110), shorten(back, 120)
@@ -156,10 +174,12 @@ def pick_quiz(col, search: str, rng: random.Random):
         print(f"Quiz search failed ({e}); using all learned cards.")
         cids = list(col.find_cards("-is:new -is:suspended"))
     rng.shuffle(cids)
-    for cid in cids[:25]:
-        t = card_texts(col, cid)
-        if t:
-            return {"front": t[0], "back": t[1], "cid": cid}
+    # Prefer cards whose front is text; fall back to note fields for audio-only decks.
+    for use_fields in (False, True):
+        for cid in cids[:60]:
+            t = card_texts(col, cid, use_fields)
+            if t:
+                return {"front": t[0], "back": t[1], "cid": cid}
     return None
 
 
@@ -267,8 +287,14 @@ def compute(col, cfg: dict, now: datetime, prev_state: dict, rng: random.Random)
     span_days = max(0, (today - span_start).days + 1)
     span_done = sum(1 for d in studied if span_start <= d <= today)
     range_label = f"in {today.year}" if cfg.get("tracker") != "rolling" else "in the last 12 months"
-    pct = round(100 * span_done / span_days) if span_days else 0
-    tracker_foot = f"<b>{span_done}</b> of {span_days} days studied {range_label}, {pct}%"
+    month_start = max(today.replace(day=1), first_day)
+    month_days = (today - month_start).days + 1
+    month_done = sum(1 for d in studied if month_start <= d <= today)
+    plural = "day" if span_done == 1 else "days"
+    tracker_foot = (
+        f"<b>{month_done}</b> of {month_days} days so far in {today:%B}. "
+        f"{span_done} study {plural} {range_label}."
+    )
 
     # ---- motivation lines
     if streak == 0:
@@ -311,6 +337,8 @@ def compute(col, cfg: dict, now: datetime, prev_state: dict, rng: random.Random)
     # ---- quiz
     quiz = pick_quiz(col, cfg.get("quiz_search", ""), rng)
     last = prev_state.get("quiz") if isinstance(prev_state, dict) else None
+    if last and (AUDIO.search(last.get("front", "")) or not last.get("back")):
+        last = None
     if last and quiz and last.get("cid") == quiz.get("cid"):
         quiz = pick_quiz(col, cfg.get("quiz_search", ""), rng) or quiz
 
