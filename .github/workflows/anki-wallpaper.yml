@@ -1,0 +1,57 @@
+name: Update Anki wallpaper
+
+on:
+  schedule:
+    # Every 2 hours (times are UTC). GitHub sometimes starts scheduled runs a few minutes late.
+    - cron: "23 */2 * * *"
+  # Adds a "Run workflow" button on the Actions tab for an instant refresh.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: anki-wallpaper
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install tools
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -q -r requirements.txt
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji > /dev/null
+
+      - name: Get the previous quiz card
+        run: |
+          if git fetch -q --depth=1 origin wallpaper 2>/dev/null; then
+            git show FETCH_HEAD:state.json > prev_state.json 2>/dev/null || echo '{}' > prev_state.json
+          else
+            echo '{}' > prev_state.json
+          fi
+
+      - name: Download from AnkiWeb and draw the wallpaper
+        env:
+          ANKI_USERNAME: ${{ secrets.ANKI_USERNAME }}
+          ANKI_PASSWORD: ${{ secrets.ANKI_PASSWORD }}
+        run: .venv/bin/python anki_wallpaper.py --sync --out out --prev-state prev_state.json
+
+      - name: Publish to the wallpaper branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          cd out
+          rm -f wallpaper.html
+          git init -q -b wallpaper
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add wallpaper.png state.json
+          git commit -q -m "Update wallpaper $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" wallpaper
+          echo "Wallpaper URL: https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/wallpaper/wallpaper.png" >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,19 @@
+{
+  "timezone": "Asia/Jerusalem",
+  "width": 1080,
+  "height": 2392,
+  "top_space": 250,
+  "tracker": "year",
+  "words_label": "Words learned",
+  "stats_search": "",
+  "quiz_search": "-is:new -is:suspended",
+  "background_image": "background.jpg",
+  "background_dim": 0.78,
+  "colors": {
+    "ink": "#121A2E",
+    "rule": "#2E4570",
+    "paper": "#EFE8D8",
+    "red": "#E5524A",
+    "muted": "#8E98AE"
+  }
+}

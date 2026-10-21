@@ -1,0 +1,202 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Anki wallpaper</title>
+<style>
+/*__FONTS__*/
+
+:root {
+  --ink: #121A2E;
+  --rule: #2E4570;
+  --paper: #EFE8D8;
+  --red: #E5524A;
+  --muted: #8E98AE;
+  --w: 1080px;
+  --h: 2392px;
+  --top: 250px;
+  --pad: 72px;
+  --serif: 'Literata', 'Noto Serif', 'Noto Serif Hebrew', 'Noto Naskh Arabic', 'Noto Serif CJK JP', 'Noto Serif CJK SC', 'DejaVu Serif', serif;
+  --display: 'Big Shoulders Display', 'Literata', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: var(--w); height: var(--h); overflow: hidden; background: var(--ink); }
+body { color: var(--paper); font-family: var(--serif); -webkit-font-smoothing: antialiased; }
+
+#wp { position: relative; width: var(--w); height: var(--h); overflow: hidden; }
+
+/* Background: optional photo under an ink wash, plus faint index-card ruling */
+.bg { position: absolute; inset: 0; background: var(--ink) center / cover no-repeat; }
+.wash { position: absolute; inset: 0; background: var(--ink); }
+.ruling {
+  position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(to bottom, transparent 0 63px, rgba(46, 69, 112, 0.22) 63px 65px);
+}
+
+main { position: absolute; inset: 0; padding: var(--top) var(--pad) 0; }
+
+.date { font-style: italic; font-size: 34px; color: var(--muted); letter-spacing: 0.01em; }
+
+/* Streak */
+.hero { display: flex; align-items: flex-end; gap: 28px; margin-top: 6px; }
+.streak-num {
+  font-family: var(--display); font-weight: 800; font-size: 300px; line-height: 0.8;
+  letter-spacing: -0.01em; color: var(--paper); font-variant-numeric: lining-nums;
+}
+.streak-text { padding-bottom: 14px; }
+.streak-text .big { display: block; font-size: 54px; font-weight: 600; line-height: 1.05; }
+.streak-text .sub { display: block; margin-top: 12px; font-size: 30px; font-style: italic; color: var(--muted); line-height: 1.3; }
+.flag { color: var(--red); }
+
+.todayline { margin-top: 44px; font-size: 42px; line-height: 1.3; max-width: 900px; }
+.redrule { height: 3px; background: var(--red); margin-top: 30px; }
+
+/* Year tracker */
+.tracker { margin-top: 34px; }
+.grid { display: grid; grid-template-columns: 70px repeat(31, 1fr); column-gap: 5px; row-gap: 11px; align-items: center; }
+.grid .dnum { font-family: var(--display); font-weight: 800; font-size: 24px; color: var(--muted); text-align: center; height: 26px; }
+.grid .mname { font-style: italic; font-size: 26px; color: var(--muted); line-height: 1; }
+.grid .mname.cur { color: var(--paper); }
+.c { aspect-ratio: 1; border-radius: 4px; position: relative; }
+.c.done { background: var(--paper); }
+.c.miss { box-shadow: inset 0 0 0 2px var(--rule); }
+.c.wait::after { content: ""; position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: var(--rule); }
+.c.today { outline: 3px solid var(--red); outline-offset: 3px; }
+.c.today.open { box-shadow: inset 0 0 0 2px var(--red); }
+.tracker-foot { margin-top: 26px; font-size: 30px; font-style: italic; color: var(--muted); }
+.tracker-foot b { font-style: normal; font-weight: 600; color: var(--paper); }
+
+/* Totals, ruled like the lines of an index card */
+.totals { margin-top: 52px; display: grid; grid-template-columns: repeat(3, 1fr); }
+.t { padding: 20px 0 22px; border-top: 2px solid var(--rule); }
+.t:nth-child(n+4) { border-bottom: 2px solid var(--rule); }
+.t .v { font-family: var(--display); font-weight: 800; font-size: 92px; line-height: 0.95; }
+.t .l { margin-top: 8px; font-size: 27px; font-style: italic; color: var(--muted); }
+
+/* Quiz: drawn as an actual index card */
+.quiz { margin-top: 64px; }
+.card {
+  position: relative; height: 300px; background: var(--paper); color: var(--ink);
+  border-radius: 6px; transform: rotate(-1.4deg); transform-origin: 30% 50%;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45), 0 2px 0 rgba(0, 0, 0, 0.15);
+  background-image:
+    linear-gradient(to bottom, transparent 74px, var(--red) 74px, var(--red) 77px, transparent 77px),
+    repeating-linear-gradient(to bottom, transparent 0 51px, rgba(70, 120, 190, 0.32) 51px 53px);
+  background-position: 0 0, 0 77px;
+  background-repeat: no-repeat, repeat;
+  overflow: hidden;
+}
+.card .ask { position: absolute; left: 36px; top: 24px; font-size: 28px; font-style: italic; color: #5A6377; }
+.card .front {
+  position: absolute; left: 36px; right: 36px; top: 98px; bottom: 58px;
+  font-size: 64px; font-weight: 600; line-height: 1.2; unicode-bidi: plaintext;
+  display: flex; align-items: center; overflow: hidden; overflow-wrap: anywhere;
+}
+.card .front span { display: block; width: 100%; }
+.card .hint { position: absolute; right: 36px; bottom: 18px; font-size: 24px; font-style: italic; color: #5A6377; }
+.last { margin-top: 40px; font-size: 32px; line-height: 1.35; color: var(--muted); font-style: italic;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; unicode-bidi: plaintext; }
+.last b { font-style: normal; font-weight: 600; color: var(--paper); }
+
+.synced { position: absolute; left: var(--pad); right: var(--pad); font-size: 24px; font-style: italic; color: var(--muted); opacity: 0.8; }
+</style>
+</head>
+<body>
+<div id="wp">
+  <div class="bg" id="bg"></div>
+  <div class="wash" id="wash"></div>
+  <div class="ruling"></div>
+  <main id="main"></main>
+  <p class="synced" id="synced"></p>
+</div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+(function () {
+  const d = JSON.parse(document.getElementById('data').textContent);
+  const root = document.documentElement.style;
+  root.setProperty('--w', d.w + 'px');
+  root.setProperty('--h', d.h + 'px');
+  root.setProperty('--top', d.top + 'px');
+  for (const [k, v] of Object.entries(d.colors || {})) root.setProperty('--' + k, v);
+
+  if (d.background) {
+    document.getElementById('bg').style.backgroundImage = 'url(' + d.background + ')';
+    document.getElementById('wash').style.opacity = d.backgroundDim;
+  }
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+  const main = document.getElementById('main');
+
+  main.appendChild(el('p', 'date', esc(d.dateLabel)));
+
+  const hero = el('section', 'hero');
+  hero.appendChild(el('div', 'streak-num', esc(d.streak)));
+  const st = el('div', 'streak-text');
+  st.appendChild(el('span', 'big', esc(d.streakWord)));
+  st.appendChild(el('span', 'sub', d.streakSub));
+  hero.appendChild(st);
+  main.appendChild(hero);
+
+  main.appendChild(el('p', 'todayline', esc(d.todayLine)));
+  main.appendChild(el('div', 'redrule'));
+
+  // Tracker: one row per month, one column per day of the month
+  const tr = el('section', 'tracker');
+  const grid = el('div', 'grid');
+  grid.appendChild(el('div'));
+  for (let i = 1; i <= 31; i++) grid.appendChild(el('div', 'dnum', (i === 1 || i % 5 === 0) ? String(i) : ''));
+  const CLS = { 0: null, 1: 'wait', 2: 'miss', 3: 'done', 4: 'today open', 5: 'done today' };
+  for (const m of d.months) {
+    grid.appendChild(el('div', 'mname' + (m.current ? ' cur' : ''), esc(m.name)));
+    for (let i = 0; i < 31; i++) {
+      const code = m.days[i] || 0;
+      grid.appendChild(code ? el('div', 'c ' + CLS[code]) : el('div'));
+    }
+  }
+  tr.appendChild(grid);
+  tr.appendChild(el('p', 'tracker-foot', d.trackerFoot));
+  main.appendChild(tr);
+
+  const tot = el('section', 'totals');
+  for (const t of d.totals) {
+    const c = el('div', 't');
+    c.appendChild(el('div', 'v', esc(t.value)));
+    c.appendChild(el('div', 'l', esc(t.label)));
+    tot.appendChild(c);
+  }
+  main.appendChild(tot);
+
+  const q = el('section', 'quiz');
+  const card = el('div', 'card');
+  card.appendChild(el('p', 'ask', d.quiz ? 'Do you remember this one?' : 'Your quiz card'));
+  const front = el('div', 'front');
+  const span = el('span', null, esc(d.quiz ? d.quiz.front : 'Learn a few cards and a quiz shows up here.'));
+  span.dir = 'auto';
+  front.appendChild(span);
+  card.appendChild(front);
+  if (d.quiz) card.appendChild(el('p', 'hint', 'Answer on the next refresh'));
+  q.appendChild(card);
+  if (d.last) {
+    const last = el('p', 'last', 'Last card was <b dir="auto">' + esc(d.last.front) + '</b>, answer: <b dir="auto">' + esc(d.last.back) + '</b>');
+    q.appendChild(last);
+  }
+  main.appendChild(q);
+
+  // Shrink the quiz text until it fits on the card
+  let size = 64;
+  while ((span.scrollHeight > front.clientHeight || span.scrollWidth > front.clientWidth) && size > 26) {
+    size -= 2;
+    front.style.fontSize = size + 'px';
+  }
+
+  const syn = document.getElementById('synced');
+  syn.textContent = d.synced;
+  const qb = q.getBoundingClientRect();
+  syn.style.top = Math.round(qb.bottom + 28) + 'px';
+})();
+</script>
+</body>
+</html>

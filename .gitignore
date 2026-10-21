@@ -1,0 +1,5 @@
+out/
+.venv/
+__pycache__/
+*.anki2
+prev_state.json
